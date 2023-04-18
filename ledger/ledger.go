@@ -711,8 +711,35 @@ func (l *Ledger) AddValidatedBlock(vb ledgercore.ValidatedBlock, cert agreement.
 		return err
 	}
 	l.headerCache.put(blk.BlockHeader)
+	if err = l.UpdateScores(blk.Round(), cert.Proposal.OriginalProposer); err != nil {
+		return err
+	}
 	l.trackers.newBlock(blk, vb.Delta())
 	l.log.Debugf("ledger.AddValidatedBlock: added blk %d", blk.Round())
+	return nil
+}
+
+func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address) error {
+	// use this to flush and refresh all the cache needed to update scores
+	_, rnd, _, err := l.LookupLatest(proposer)
+	if err != nil {
+		return err
+	}
+	if rnd > r {
+		// TODO: verify this logic is correct
+		// if the latest account data round is greater than updating block's one, skip (?)
+		return nil
+	}
+	l.accts.accountsMu.Lock()
+	if macct, ok := l.accts.accounts[proposer]; ok {
+		macct.data.Scores = macct.data.Scores.IncreaseScores()
+		l.accts.accounts[proposer] = macct
+	}
+	if pacct, ok := l.accts.baseAccounts.read(proposer); ok && pacct.Round < r {
+		pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores()
+		l.accts.baseAccounts.write(pacct)
+	}
+	l.accts.accountsMu.Unlock()
 	return nil
 }
 
