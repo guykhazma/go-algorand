@@ -25,6 +25,7 @@ import (
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/committee/sortition"
+	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -72,7 +73,7 @@ type (
 //
 // If it is, the returned Credential constitutes a proof of this fact.
 // Otherwise, an error is returned.
-func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Membership) (res Credential, err error) {
+func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Membership, merger scores.Merger) (res Credential, err error) {
 	selectionKey := m.Record.SelectionID
 	ok, vrfOut := selectionKey.Verify(cred.Proof, m.Selector)
 
@@ -97,13 +98,15 @@ func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Mem
 	var weight uint64
 	userMoney := m.Record.VotingStake()
 	expectedSelection := float64(m.Selector.CommitteeSize(proto))
+	totalScore := merger.Merge(m.TotalMoney, m.TotalScores)
+	userScore := merger.Merge(userMoney, m.Record.Scores)
 
-	if m.TotalMoney.Raw < userMoney.Raw {
-		logging.Base().Panicf("UnauthenticatedCredential.Verify: total money = %v, but user money = %v", m.TotalMoney, userMoney)
-	} else if m.TotalMoney.IsZero() || expectedSelection == 0 || expectedSelection > float64(m.TotalMoney.Raw) {
-		logging.Base().Panicf("UnauthenticatedCredential.Verify: m.TotalMoney %v, expectedSelection %v", m.TotalMoney.Raw, expectedSelection)
+	if totalScore < userScore {
+		logging.Base().Panicf("UnauthenticatedCredential.Verify: total score = %v, but user score = %v", totalScore, userScore)
+	} else if totalScore == 0 || expectedSelection == 0 || expectedSelection > float64(totalScore) {
+		logging.Base().Panicf("UnauthenticatedCredential.Verify: totalScore %v, expectedSelection %v", totalScore, expectedSelection)
 	} else if !userMoney.IsZero() {
-		weight = sortition.Select(userMoney.Raw, m.TotalMoney.Raw, expectedSelection, h)
+		weight = sortition.Select(userScore, totalScore, expectedSelection, h)
 	}
 
 	if weight == 0 {

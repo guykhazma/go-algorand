@@ -26,10 +26,13 @@ import (
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/committee"
+	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
+
+var merger = scores.SumMerger{}
 
 // error is set if this address is not selected
 func makeVoteTesting(addr basics.Address, vrfSecs *crypto.VRFSecrets, otSecs crypto.OneTimeSigner, ledger Ledger, round basics.Round, period period, step step, digest crypto.Digest) (vote, error) {
@@ -40,7 +43,7 @@ func makeVoteTesting(addr basics.Address, vrfSecs *crypto.VRFSecrets, otSecs cry
 	if fatalerr != nil {
 		panic(fatalerr)
 	}
-	return v.verify(ledger)
+	return v.verify(ledger, merger)
 }
 
 func TestVoteValidation(t *testing.T) {
@@ -64,11 +67,11 @@ func TestVoteValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		//loop to find votes selected to participate
-		_, err = unauthenticatedVote.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m)
+		_, err = unauthenticatedVote.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m, merger)
 		selected := err == nil
 		if selected {
 			processedVote = true
-			av, err := unauthenticatedVote.verify(ledger)
+			av, err := unauthenticatedVote.verify(ledger, merger)
 			require.NoError(t, err)
 
 			require.Equal(t, av.R.Round, round)
@@ -80,37 +83,37 @@ func TestVoteValidation(t *testing.T) {
 
 			noSig := unauthenticatedVote
 			noSig.Sig = crypto.OneTimeSignature{}
-			_, err = noSig.verify(ledger)
+			_, err = noSig.verify(ledger, merger)
 			require.Error(t, err)
 
 			noCred := unauthenticatedVote
 			noCred.Cred = committee.UnauthenticatedCredential{}
-			_, err = noCred.verify(ledger)
+			_, err = noCred.verify(ledger, merger)
 			require.Error(t, err)
 
 			badRound := unauthenticatedVote
 			badRound.R.Round++
-			_, err = badRound.verify(ledger)
+			_, err = badRound.verify(ledger, merger)
 			require.Error(t, err)
 
 			badPeriod := unauthenticatedVote
 			badPeriod.R.Period++
-			_, err = badPeriod.verify(ledger)
+			_, err = badPeriod.verify(ledger, merger)
 			require.Error(t, err)
 
 			badStep := unauthenticatedVote
 			badStep.R.Step++
-			_, err = badStep.verify(ledger)
+			_, err = badStep.verify(ledger, merger)
 			require.Error(t, err)
 
 			badBlockHash := unauthenticatedVote
 			badBlockHash.R.Proposal.BlockDigest = randomBlockHash()
-			_, err = badBlockHash.verify(ledger)
+			_, err = badBlockHash.verify(ledger, merger)
 			require.Error(t, err)
 
 			badProposer := unauthenticatedVote
 			badProposer.R.Proposal.OriginalProposer = basics.Address(randomBlockHash())
-			_, err = badProposer.verify(ledger)
+			_, err = badProposer.verify(ledger, merger)
 			require.Error(t, err)
 		}
 	}
@@ -139,11 +142,11 @@ func TestVoteReproposalValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		//loop to find votes selected to participate
-		_, err = unauthenticatedVote.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m)
+		_, err = unauthenticatedVote.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m, merger)
 		selected := err == nil
 		if selected {
 			processedVote = true
-			_, err := unauthenticatedVote.verify(ledger)
+			_, err := unauthenticatedVote.verify(ledger, merger)
 			require.NoError(t, err)
 
 			// good period-1 reproposal for a period-0 original proposal
@@ -152,7 +155,7 @@ func TestVoteReproposalValidation(t *testing.T) {
 			rv.Proposal.OriginalProposer = basics.Address(randomBlockHash())
 			reproposalVote, err := makeVote(rv, otSecrets[i], vrfSecrets[i], ledger)
 			require.NoError(t, err)
-			_, err = reproposalVote.verify(ledger)
+			_, err = reproposalVote.verify(ledger, merger)
 			require.NoError(t, err)
 
 			// bad period-1 fresh proposal because original proposer is not sender
@@ -161,7 +164,7 @@ func TestVoteReproposalValidation(t *testing.T) {
 			rv.Proposal.OriginalProposer = basics.Address(randomBlockHash())
 			badReproposalVote, err := makeVote(rv, otSecrets[i], vrfSecrets[i], ledger)
 			require.NoError(t, err)
-			_, err = badReproposalVote.verify(ledger)
+			_, err = badReproposalVote.verify(ledger, merger)
 			require.Error(t, err)
 
 			// bad period-1 reproposal for a period 2 original proposal
@@ -170,7 +173,7 @@ func TestVoteReproposalValidation(t *testing.T) {
 			rv.Proposal.OriginalProposer = address
 			badReproposalVote, err = makeVote(rv, otSecrets[i], vrfSecrets[i], ledger)
 			require.NoError(t, err)
-			_, err = badReproposalVote.verify(ledger)
+			_, err = badReproposalVote.verify(ledger, merger)
 			require.Error(t, err)
 		}
 	}
@@ -234,14 +237,14 @@ func TestVoteValidationStepCertAndProposalBottom(t *testing.T) {
 		rawVote := rawVote{Sender: address, Round: round, Period: period, Step: step(i), Proposal: proposal}
 		unauthenticatedVote, err := makeVote(rawVote, otSecrets[i], vrfSecrets[i], ledger)
 
-		_, err = unauthenticatedVote.verify(ledger)
+		_, err = unauthenticatedVote.verify(ledger, merger)
 		//loop to find votes selected to participate
 		selected := err == nil
 		if selected {
 
 			unauthenticatedVote.R.Step = cert
 			unauthenticatedVote.R.Proposal = bottom
-			_, err = unauthenticatedVote.verify(ledger)
+			_, err = unauthenticatedVote.verify(ledger, merger)
 			require.Error(t, err)
 
 		}
@@ -300,66 +303,66 @@ func TestEquivocationVoteValidation(t *testing.T) {
 		}
 
 		require.NotNil(t, ev, "unauthenticated equivocation vote should not be null")
-		_, err = ev.verify(ledger)
+		_, err = ev.verify(ledger, merger)
 		//loop to find votes selected to participate
 		selected := err == nil
 		if selected {
 			processedVote = true
-			aev, err := ev.verify(ledger)
+			aev, err := ev.verify(ledger, merger)
 			require.NoError(t, err)
 			require.NotNil(t, aev, "authenticated equivocation vote should not be null")
 
 			// check for same vote
-			_, err = evSameVote.verify(ledger)
+			_, err = evSameVote.verify(ledger, merger)
 			require.Error(t, err)
 
 			// test vote accessors
 			v0 := aev.v0()
 			require.NotNil(t, v0)
-			_, err = v0.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m)
+			_, err = v0.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m, merger)
 
 			v1 := aev.v1()
 			require.NotNil(t, v1)
-			_, err = v1.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m)
+			_, err = v1.Cred.Verify(config.Consensus[protocol.ConsensusCurrentVersion], m, merger)
 
 			noSig := ev
 			noSig.Sigs = [2]crypto.OneTimeSignature{{}, {}}
-			_, err = noSig.verify(ledger)
+			_, err = noSig.verify(ledger, merger)
 			require.Error(t, err)
 
 			noCred := ev
 			noCred.Cred = committee.UnauthenticatedCredential{}
-			_, err = noCred.verify(ledger)
+			_, err = noCred.verify(ledger, merger)
 			require.Error(t, err)
 
 			badRound := ev
 			badRound.Round++
-			_, err = badRound.verify(ledger)
+			_, err = badRound.verify(ledger, merger)
 			require.Error(t, err)
 
 			badPeriod := ev
 			badPeriod.Period++
-			_, err = badPeriod.verify(ledger)
+			_, err = badPeriod.verify(ledger, merger)
 			require.Error(t, err)
 
 			badStep := ev
 			badStep.Step++
-			_, err = badStep.verify(ledger)
+			_, err = badStep.verify(ledger, merger)
 			require.Error(t, err)
 
 			badBlockHash1 := ev
 			badBlockHash1.Proposals[0].BlockDigest = randomBlockHash()
-			_, err = badBlockHash1.verify(ledger)
+			_, err = badBlockHash1.verify(ledger, merger)
 			require.Error(t, err)
 
 			badBlockHash2 := ev
 			badBlockHash2.Proposals[1].BlockDigest = randomBlockHash()
-			_, err = badBlockHash2.verify(ledger)
+			_, err = badBlockHash2.verify(ledger, merger)
 			require.Error(t, err)
 
 			badSender := ev
 			badSender.Sender = basics.Address{}
-			_, err = badSender.verify(ledger)
+			_, err = badSender.verify(ledger, merger)
 			require.Error(t, err)
 		}
 	}

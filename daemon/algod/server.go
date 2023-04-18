@@ -38,6 +38,7 @@ import (
 	"github.com/algorand/go-algorand/daemon/algod/api/server/lib"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
+	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/logging/telemetryspec"
 	"github.com/algorand/go-algorand/network/limitlistener"
@@ -213,14 +214,15 @@ func (s *Server) Initialize(cfg config.Local, phonebookAddresses []string, genes
 			NodeExporterPath:          cfg.NodeExporterPath,
 		})
 
+	merger := scores.SumMerger{}
 	var serverNode ServerNode
 	if cfg.EnableFollowMode {
 		var followerNode *node.AlgorandFollowerNode
-		followerNode, err = node.MakeFollower(s.log, s.RootPath, cfg, phonebookAddresses, s.Genesis)
+		followerNode, err = node.MakeFollower(s.log, s.RootPath, cfg, phonebookAddresses, s.Genesis, merger)
 		serverNode = apiServer.FollowerNode{AlgorandFollowerNode: followerNode}
 	} else {
 		var fullNode *node.AlgorandFullNode
-		fullNode, err = node.MakeFull(s.log, s.RootPath, cfg, phonebookAddresses, s.Genesis)
+		fullNode, err = node.MakeFull(s.log, s.RootPath, cfg, phonebookAddresses, s.Genesis, merger)
 		serverNode = apiServer.APINode{AlgorandFullNode: fullNode}
 	}
 	if os.IsNotExist(err) {

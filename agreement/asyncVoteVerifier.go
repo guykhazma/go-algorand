@@ -21,6 +21,7 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/util/execpool"
 )
 
@@ -54,15 +55,17 @@ type AsyncVoteVerifier struct {
 	wg              sync.WaitGroup
 	workerWaitCh    chan struct{}
 	backlogExecPool execpool.BacklogPool
+	merger          scores.Merger
 	execpoolOut     chan interface{}
 	ctx             context.Context
 	ctxCancel       context.CancelFunc
 }
 
 // MakeAsyncVoteVerifier creates an AsyncVoteVerifier with workers as the number of CPUs
-func MakeAsyncVoteVerifier(verificationPool execpool.BacklogPool) *AsyncVoteVerifier {
+func MakeAsyncVoteVerifier(verificationPool execpool.BacklogPool, merger scores.Merger) *AsyncVoteVerifier {
 	verifier := &AsyncVoteVerifier{
-		done: make(chan struct{}),
+		done:   make(chan struct{}),
+		merger: merger,
 	}
 	if verificationPool == nil {
 		// The MakeBacklog would internall allocate an execution pool if none was provided.
@@ -103,7 +106,7 @@ func (avv *AsyncVoteVerifier) executeVoteVerification(task interface{}) interfac
 		return &asyncVerifyVoteResponse{err: req.ctx.Err(), cancelled: true, req: &req, index: req.index}
 	default:
 		// request was not cancelled, so we verify it here and return the result on the channel
-		v, err := req.uv.verify(req.l)
+		v, err := req.uv.verify(req.l, avv.merger)
 		req.message.Vote = v
 
 		var e *LedgerDroppedRoundError
@@ -122,7 +125,7 @@ func (avv *AsyncVoteVerifier) executeEqVoteVerification(task interface{}) interf
 		return &asyncVerifyVoteResponse{err: req.ctx.Err(), cancelled: true, req: &req, index: req.index}
 	default:
 		// request was not cancelled, so we verify it here and return the result on the channel
-		ev, err := req.uev.verify(req.l)
+		ev, err := req.uev.verify(req.l, avv.merger)
 
 		var e *LedgerDroppedRoundError
 		cancelled := errors.As(err, &e)

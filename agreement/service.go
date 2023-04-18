@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/algorand/go-algorand/config"
+	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/util/db"
@@ -68,6 +69,7 @@ type Parameters struct {
 	BlockFactory
 	RandomSource
 	EventsProcessingMonitor
+	scores.Merger
 	timers.Clock
 	db.Accessor
 	logging.Logger
@@ -123,7 +125,7 @@ func (s *Service) Start() {
 	s.quit = make(chan struct{})
 	s.done = make(chan struct{})
 
-	s.voteVerifier = MakeAsyncVoteVerifier(s.BacklogPool)
+	s.voteVerifier = MakeAsyncVoteVerifier(s.BacklogPool, s.parameters.Merger)
 	s.demux = makeDemux(demuxParams{
 		net:               s.Network,
 		ledger:            s.Ledger,
