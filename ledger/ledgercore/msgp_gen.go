@@ -798,8 +798,8 @@ func (z *AlgoCount) MsgIsZero() bool {
 func (z *OnlineRoundParamsData) MarshalMsg(b []byte) (o []byte) {
 	o = msgp.Require(b, z.Msgsize())
 	// omitempty: check for empty values
-	zb0001Len := uint32(3)
-	var zb0001Mask uint8 /* 4 bits */
+	zb0001Len := uint32(4)
+	var zb0001Mask uint8 /* 5 bits */
 	if (*z).OnlineSupply == 0 {
 		zb0001Len--
 		zb0001Mask |= 0x2
@@ -811,6 +811,10 @@ func (z *OnlineRoundParamsData) MarshalMsg(b []byte) (o []byte) {
 	if (*z).RewardsLevel == 0 {
 		zb0001Len--
 		zb0001Mask |= 0x8
+	}
+	if (*z).TrustSupply == 0 {
+		zb0001Len--
+		zb0001Mask |= 0x10
 	}
 	// variable map header, size zb0001Len
 	o = append(o, 0x80|uint8(zb0001Len))
@@ -829,6 +833,11 @@ func (z *OnlineRoundParamsData) MarshalMsg(b []byte) (o []byte) {
 			// string "rwdlvl"
 			o = append(o, 0xa6, 0x72, 0x77, 0x64, 0x6c, 0x76, 0x6c)
 			o = msgp.AppendUint64(o, (*z).RewardsLevel)
+		}
+		if (zb0001Mask & 0x10) == 0 { // if not empty
+			// string "trust"
+			o = append(o, 0xa5, 0x74, 0x72, 0x75, 0x73, 0x74)
+			o = msgp.AppendUint64(o, (*z).TrustSupply)
 		}
 	}
 	return
@@ -857,6 +866,14 @@ func (z *OnlineRoundParamsData) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			(*z).OnlineSupply, bts, err = msgp.ReadUint64Bytes(bts)
 			if err != nil {
 				err = msgp.WrapError(err, "struct-from-array", "OnlineSupply")
+				return
+			}
+		}
+		if zb0001 > 0 {
+			zb0001--
+			(*z).TrustSupply, bts, err = msgp.ReadUint64Bytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "struct-from-array", "TrustSupply")
 				return
 			}
 		}
@@ -905,6 +922,12 @@ func (z *OnlineRoundParamsData) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					err = msgp.WrapError(err, "OnlineSupply")
 					return
 				}
+			case "trust":
+				(*z).TrustSupply, bts, err = msgp.ReadUint64Bytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "TrustSupply")
+					return
+				}
 			case "rwdlvl":
 				(*z).RewardsLevel, bts, err = msgp.ReadUint64Bytes(bts)
 				if err != nil {
@@ -937,13 +960,13 @@ func (_ *OnlineRoundParamsData) CanUnmarshalMsg(z interface{}) bool {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OnlineRoundParamsData) Msgsize() (s int) {
-	s = 1 + 7 + msgp.Uint64Size + 7 + msgp.Uint64Size + 6 + (*z).CurrentProtocol.Msgsize()
+	s = 1 + 7 + msgp.Uint64Size + 6 + msgp.Uint64Size + 7 + msgp.Uint64Size + 6 + (*z).CurrentProtocol.Msgsize()
 	return
 }
 
 // MsgIsZero returns whether this is a zero value
 func (z *OnlineRoundParamsData) MsgIsZero() bool {
-	return ((*z).OnlineSupply == 0) && ((*z).RewardsLevel == 0) && ((*z).CurrentProtocol.MsgIsZero())
+	return ((*z).OnlineSupply == 0) && ((*z).TrustSupply == 0) && ((*z).RewardsLevel == 0) && ((*z).CurrentProtocol.MsgIsZero())
 }
 
 // MarshalMsg implements msgp.Marshaler

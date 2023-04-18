@@ -58,6 +58,7 @@ type OnlineRoundParamsData struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
 	OnlineSupply    uint64                    `codec:"online"`
+	TrustSupply     uint64                    `codec:"trust"`
 	RewardsLevel    uint64                    `codec:"rwdlvl"`
 	CurrentProtocol protocol.ConsensusVersion `codec:"proto"`
 }
@@ -112,7 +113,7 @@ func (at *AccountTotals) All() basics.MicroAlgos {
 	return res
 }
 
-// Participating returns the sum of algos held under ``participating''
+// Participating returns the sum of algos held under “participating”
 // account status values (Online and Offline).  It excludes MicroAlgos held
 // by NotParticipating accounts.
 func (at *AccountTotals) Participating() basics.MicroAlgos {
@@ -123,7 +124,7 @@ func (at *AccountTotals) Participating() basics.MicroAlgos {
 	return res
 }
 
-// RewardUnits returns the sum of reward units held under ``participating''
+// RewardUnits returns the sum of reward units held under “participating”
 // account status values (Online and Offline).  It excludes units held
 // by NotParticipating accounts.
 func (at *AccountTotals) RewardUnits() uint64 {

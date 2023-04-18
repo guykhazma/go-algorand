@@ -578,6 +578,7 @@ func (ao *onlineAccounts) LookupOnlineAccountData(rnd basics.Round, addr basics.
 	}
 
 	data.MicroAlgosWithRewards = oad.MicroAlgosWithRewards
+	data.Scores = oad.Scores
 	data.VotingData.VoteID = oad.VotingData.VoteID
 	data.VotingData.SelectionID = oad.VotingData.SelectionID
 	data.VotingData.StateProofID = oad.VotingData.StateProofID

@@ -20,6 +20,7 @@ import (
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
+	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/protocol"
 )
 
@@ -39,6 +40,7 @@ type Selector interface {
 // BalanceRecord pairs an account's address with its associated data.
 //
 // This struct is used to decouple LedgerReader.AccountData from basics.BalanceRecord.
+//
 //msgp:ignore BalanceRecord
 type BalanceRecord struct {
 	basics.OnlineAccountData
@@ -47,9 +49,10 @@ type BalanceRecord struct {
 
 // Membership encodes the parameters used to verify membership in a committee.
 type Membership struct {
-	Record     BalanceRecord
-	Selector   Selector
-	TotalMoney basics.MicroAlgos
+	Record      BalanceRecord
+	Selector    Selector
+	TotalMoney  basics.MicroAlgos
+	TotalScores scores.Scores
 }
 
 // A Seed contains cryptographic entropy which can be used to determine a

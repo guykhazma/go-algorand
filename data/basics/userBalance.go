@@ -19,6 +19,7 @@ package basics
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/data/scores"
 	"reflect"
 
 	"github.com/algorand/go-algorand/config"
@@ -105,9 +106,11 @@ type VotingData struct {
 }
 
 // OnlineAccountData contains the voting information for a single account.
+//
 //msgp:ignore OnlineAccountData
 type OnlineAccountData struct {
 	MicroAlgosWithRewards MicroAlgos
+	Scores                scores.Scores
 	VotingData
 }
 
@@ -118,8 +121,9 @@ type OnlineAccountData struct {
 type AccountData struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	Status     Status     `codec:"onl"`
-	MicroAlgos MicroAlgos `codec:"algo"`
+	Status     Status        `codec:"onl"`
+	MicroAlgos MicroAlgos    `codec:"algo"`
+	Scores     scores.Scores `codec:"score"`
 
 	// RewardsBase is used to implement rewards.
 	// This is not meaningful for accounts with Status=NotParticipating.
@@ -572,7 +576,7 @@ func (u AccountData) IsZero() bool {
 	return reflect.DeepEqual(u, AccountData{})
 }
 
-// NormalizedOnlineBalance returns a ``normalized'' balance for this account.
+// NormalizedOnlineBalance returns a “normalized” balance for this account.
 //
 // The normalization compensates for rewards that have not yet been applied,
 // by computing a balance normalized to round 0.  To normalize, we estimate
@@ -594,7 +598,7 @@ func (u AccountData) NormalizedOnlineBalance(proto config.ConsensusParams) uint6
 	return NormalizedOnlineAccountBalance(u.Status, u.RewardsBase, u.MicroAlgos, proto)
 }
 
-// NormalizedOnlineAccountBalance returns a ``normalized'' balance for an account
+// NormalizedOnlineAccountBalance returns a “normalized” balance for an account
 // with the given parameters.
 //
 // The normalization compensates for rewards that have not yet been applied,

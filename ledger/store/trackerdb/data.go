@@ -18,6 +18,7 @@ package trackerdb
 
 import (
 	"context"
+	"github.com/algorand/go-algorand/data/scores"
 
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
@@ -47,6 +48,7 @@ type BaseAccountData struct {
 	TotalAppLocalStates        uint64            `codec:"l"`
 	TotalBoxes                 uint64            `codec:"m"`
 	TotalBoxBytes              uint64            `codec:"n"`
+	Scores                     scores.Scores     `codec:"o"`
 
 	BaseVotingData
 
@@ -149,6 +151,7 @@ type BaseOnlineAccountData struct {
 
 	BaseVotingData
 
+	Scores      scores.Scores     `codec:"X"`
 	MicroAlgos  basics.MicroAlgos `codec:"Y"`
 	RewardsBase uint64            `codec:"Z"`
 }
@@ -286,6 +289,7 @@ func (ba *BaseAccountData) SetCoreAccountData(ad *ledgercore.AccountData) {
 	ba.TotalAppLocalStates = ad.TotalAppLocalStates
 	ba.TotalBoxes = ad.TotalBoxes
 	ba.TotalBoxBytes = ad.TotalBoxBytes
+	ba.Scores = ad.Scores
 
 	ba.BaseVotingData.SetCoreAccountData(ad)
 }
@@ -306,6 +310,7 @@ func (ba *BaseAccountData) SetAccountData(ad *basics.AccountData) {
 	ba.TotalAppLocalStates = uint64(len(ad.AppLocalStates))
 	ba.TotalBoxes = ad.TotalBoxes
 	ba.TotalBoxBytes = ad.TotalBoxBytes
+	ba.Scores = ad.Scores
 
 	ba.BaseVotingData.VoteID = ad.VoteID
 	ba.BaseVotingData.SelectionID = ad.SelectionID
@@ -342,6 +347,7 @@ func (ba *BaseAccountData) GetLedgerCoreAccountBaseData() ledgercore.AccountBase
 		TotalAssets:         ba.TotalAssets,
 		TotalBoxes:          ba.TotalBoxes,
 		TotalBoxBytes:       ba.TotalBoxBytes,
+		Scores:              ba.Scores,
 	}
 }
 
@@ -372,6 +378,7 @@ func (ba *BaseAccountData) GetAccountData() basics.AccountData {
 		TotalExtraAppPages: ba.TotalExtraAppPages,
 		TotalBoxes:         ba.TotalBoxes,
 		TotalBoxBytes:      ba.TotalBoxBytes,
+		Scores:             ba.Scores,
 
 		VoteID:          ba.VoteID,
 		SelectionID:     ba.SelectionID,
@@ -398,6 +405,7 @@ func (ba *BaseAccountData) IsEmpty() bool {
 		ba.TotalAppLocalStates == 0 &&
 		ba.TotalBoxes == 0 &&
 		ba.TotalBoxBytes == 0 &&
+		ba.Scores.IsEmpty() &&
 		ba.BaseVotingData.IsEmpty()
 }
 
@@ -434,6 +442,7 @@ func (bo *BaseOnlineAccountData) GetOnlineAccount(addr basics.Address, normBalan
 	return ledgercore.OnlineAccount{
 		Address:                 addr,
 		MicroAlgos:              bo.MicroAlgos,
+		Scores:                  bo.Scores,
 		RewardsBase:             bo.RewardsBase,
 		NormalizedOnlineBalance: normBalance,
 		VoteFirstValid:          bo.VoteFirstValid,
@@ -451,6 +460,7 @@ func (bo *BaseOnlineAccountData) GetOnlineAccountData(proto config.ConsensusPara
 
 	return ledgercore.OnlineAccountData{
 		MicroAlgosWithRewards: microAlgos,
+		Scores:                bo.Scores,
 		VotingData: ledgercore.VotingData{
 			VoteID:          bo.VoteID,
 			SelectionID:     bo.SelectionID,
