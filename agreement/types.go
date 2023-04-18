@@ -84,7 +84,7 @@ func (s step) nextVoteRanges() (lower, upper time.Duration) {
 	return lower, upper
 }
 
-// ReachesQuorum compares the current weight to the thresholds appropriate for the step,
+// reachesQuorum compares the current weight to the thresholds appropriate for the step,
 // to determine if we've reached a quorum.
 func (s step) reachesQuorum(proto config.ConsensusParams, weight uint64) bool {
 	switch s {

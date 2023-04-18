@@ -647,7 +647,7 @@ func (ao *onlineAccounts) lookupOnlineAccountData(rnd basics.Round, addr basics.
 
 	// the loop serves retrying logic if the database advanced while
 	// the function was analyzing deltas or caches.
-	// a similar approach is used in other lookup- methods in acctupdates as well.
+	// a similar approach is used in other look-up methods in acctupdates as well.
 	for {
 		ao.accountsMu.RLock()
 		needUnlock = true
