@@ -812,7 +812,7 @@ func (z *OnlineRoundParamsData) MarshalMsg(b []byte) (o []byte) {
 		zb0001Len--
 		zb0001Mask |= 0x8
 	}
-	if (*z).TrustSupply == 0 {
+	if (*z).ScoresSupply.MsgIsZero() {
 		zb0001Len--
 		zb0001Mask |= 0x10
 	}
@@ -835,9 +835,9 @@ func (z *OnlineRoundParamsData) MarshalMsg(b []byte) (o []byte) {
 			o = msgp.AppendUint64(o, (*z).RewardsLevel)
 		}
 		if (zb0001Mask & 0x10) == 0 { // if not empty
-			// string "trust"
-			o = append(o, 0xa5, 0x74, 0x72, 0x75, 0x73, 0x74)
-			o = msgp.AppendUint64(o, (*z).TrustSupply)
+			// string "scores"
+			o = append(o, 0xa6, 0x73, 0x63, 0x6f, 0x72, 0x65, 0x73)
+			o = (*z).ScoresSupply.MarshalMsg(o)
 		}
 	}
 	return
@@ -871,9 +871,9 @@ func (z *OnlineRoundParamsData) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		}
 		if zb0001 > 0 {
 			zb0001--
-			(*z).TrustSupply, bts, err = msgp.ReadUint64Bytes(bts)
+			bts, err = (*z).ScoresSupply.UnmarshalMsg(bts)
 			if err != nil {
-				err = msgp.WrapError(err, "struct-from-array", "TrustSupply")
+				err = msgp.WrapError(err, "struct-from-array", "ScoresSupply")
 				return
 			}
 		}
@@ -922,10 +922,10 @@ func (z *OnlineRoundParamsData) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					err = msgp.WrapError(err, "OnlineSupply")
 					return
 				}
-			case "trust":
-				(*z).TrustSupply, bts, err = msgp.ReadUint64Bytes(bts)
+			case "scores":
+				bts, err = (*z).ScoresSupply.UnmarshalMsg(bts)
 				if err != nil {
-					err = msgp.WrapError(err, "TrustSupply")
+					err = msgp.WrapError(err, "ScoresSupply")
 					return
 				}
 			case "rwdlvl":
@@ -960,13 +960,13 @@ func (_ *OnlineRoundParamsData) CanUnmarshalMsg(z interface{}) bool {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *OnlineRoundParamsData) Msgsize() (s int) {
-	s = 1 + 7 + msgp.Uint64Size + 6 + msgp.Uint64Size + 7 + msgp.Uint64Size + 6 + (*z).CurrentProtocol.Msgsize()
+	s = 1 + 7 + msgp.Uint64Size + 7 + (*z).ScoresSupply.Msgsize() + 7 + msgp.Uint64Size + 6 + (*z).CurrentProtocol.Msgsize()
 	return
 }
 
 // MsgIsZero returns whether this is a zero value
 func (z *OnlineRoundParamsData) MsgIsZero() bool {
-	return ((*z).OnlineSupply == 0) && ((*z).TrustSupply == 0) && ((*z).RewardsLevel == 0) && ((*z).CurrentProtocol.MsgIsZero())
+	return ((*z).OnlineSupply == 0) && ((*z).ScoresSupply.MsgIsZero()) && ((*z).RewardsLevel == 0) && ((*z).CurrentProtocol.MsgIsZero())
 }
 
 // MarshalMsg implements msgp.Marshaler

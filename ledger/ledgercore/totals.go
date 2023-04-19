@@ -58,7 +58,7 @@ type OnlineRoundParamsData struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
 	OnlineSupply    uint64                    `codec:"online"`
-	TrustSupply     uint64                    `codec:"trust"`
+	ScoresSupply    basics.Scores             `codec:"scores"`
 	RewardsLevel    uint64                    `codec:"rwdlvl"`
 	CurrentProtocol protocol.ConsensusVersion `codec:"proto"`
 }

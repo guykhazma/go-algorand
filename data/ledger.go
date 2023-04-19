@@ -55,6 +55,7 @@ type Ledger struct {
 type roundCirculationPair struct {
 	round       basics.Round
 	onlineMoney basics.MicroAlgos
+	scores      basics.Scores
 }
 
 // roundCirculation is the cache for the circulating coins
@@ -174,19 +175,19 @@ func (l *Ledger) NextRound() basics.Round {
 }
 
 // Circulation implements agreement.Ledger.Circulation.
-func (l *Ledger) Circulation(r basics.Round) (basics.MicroAlgos, error) {
+func (l *Ledger) Circulation(r basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	circulation, cached := l.lastRoundCirculation.Load().(roundCirculation)
 	if cached && r != basics.Round(0) {
 		for _, element := range circulation.elements {
 			if element.round == r {
-				return element.onlineMoney, nil
+				return element.onlineMoney, element.scores, nil
 			}
 		}
 	}
 
-	totals, err := l.OnlineTotals(r)
+	totals, scores, err := l.OnlineTotals(r)
 	if err != nil {
-		return basics.MicroAlgos{}, err
+		return basics.MicroAlgos{}, basics.Scores{}, err
 	}
 
 	if !cached || r > circulation.elements[1].round {
@@ -196,12 +197,14 @@ func (l *Ledger) Circulation(r basics.Round) (basics.MicroAlgos, error) {
 					circulation.elements[1],
 					{
 						round:       r,
-						onlineMoney: totals},
+						onlineMoney: totals,
+						scores:      scores,
+					},
 				},
 			})
 	}
 
-	return totals, nil
+	return totals, scores, nil
 }
 
 // Seed gives the VRF seed that was agreed on in a given round,

@@ -534,7 +534,7 @@ func (ao *onlineAccounts) postCommitUnlocked(ctx context.Context, dcc *deferredC
 }
 
 // onlineTotals return the total online balance for the given round.
-func (ao *onlineAccounts) onlineTotals(rnd basics.Round) (basics.MicroAlgos, error) {
+func (ao *onlineAccounts) onlineTotals(rnd basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	ao.accountsMu.RLock()
 	defer ao.accountsMu.RUnlock()
 	return ao.onlineTotalsImpl(rnd)
@@ -542,12 +542,12 @@ func (ao *onlineAccounts) onlineTotals(rnd basics.Round) (basics.MicroAlgos, err
 
 // onlineTotalsEx return the total online balance for the given round for extended rounds range
 // by looking into DB
-func (ao *onlineAccounts) onlineTotalsEx(rnd basics.Round) (basics.MicroAlgos, error) {
+func (ao *onlineAccounts) onlineTotalsEx(rnd basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	ao.accountsMu.RLock()
-	totalsOnline, err := ao.onlineTotalsImpl(rnd)
+	totalsOnline, totalsScore, err := ao.onlineTotalsImpl(rnd)
 	ao.accountsMu.RUnlock()
 	if err == nil {
-		return totalsOnline, err
+		return totalsOnline, totalsScore, err
 	}
 
 	var roundOffsetError *RoundOffsetError
@@ -555,19 +555,19 @@ func (ao *onlineAccounts) onlineTotalsEx(rnd basics.Round) (basics.MicroAlgos, e
 		ao.log.Errorf("onlineTotalsImpl error: %v", err)
 	}
 
-	totalsOnline, err = ao.accountsq.LookupOnlineTotalsHistory(rnd)
-	return totalsOnline, err
+	totalsOnline, totalsScore, err = ao.accountsq.LookupOnlineTotalsHistory(rnd)
+	return totalsOnline, totalsScore, err
 }
 
 // onlineTotalsImpl returns the online totals of all accounts at the end of round rnd.
-func (ao *onlineAccounts) onlineTotalsImpl(rnd basics.Round) (basics.MicroAlgos, error) {
+func (ao *onlineAccounts) onlineTotalsImpl(rnd basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	offset, err := ao.roundParamsOffset(rnd)
 	if err != nil {
-		return basics.MicroAlgos{}, err
+		return basics.MicroAlgos{}, basics.Scores{}, err
 	}
 
 	onlineRoundParams := ao.onlineRoundParamsData[offset]
-	return basics.MicroAlgos{Raw: onlineRoundParams.OnlineSupply}, nil
+	return basics.MicroAlgos{Raw: onlineRoundParams.OnlineSupply}, onlineRoundParams.ScoresSupply, nil
 }
 
 // LookupOnlineAccountData returns the online account data for a given address at a given round.
@@ -925,13 +925,14 @@ func (ao *onlineAccounts) TopOnlineAccounts(rnd basics.Round, voteRnd basics.Rou
 			topOnlineAccounts = append(topOnlineAccounts, acct)
 		}
 
-		totalOnlineStake, err = ao.onlineTotalsEx(rnd)
+		totalOnlineStake, totalScores, err := ao.onlineTotalsEx(rnd)
 		if err != nil {
 			return nil, basics.MicroAlgos{}, err
 		}
 		ot := basics.OverflowTracker{}
 		for _, oa := range invalidOnlineAccounts {
 			totalOnlineStake = ot.SubA(totalOnlineStake, oa.MicroAlgos)
+			totalScores = totalScores.Sub(oa.Scores)
 			if ot.Overflowed {
 				return nil, basics.MicroAlgos{}, fmt.Errorf("TopOnlineAccounts: overflow in stakeOfflineInVoteRound")
 			}

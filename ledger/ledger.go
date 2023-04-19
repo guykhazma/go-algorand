@@ -618,7 +618,7 @@ func (l *Ledger) LatestTotals() (basics.Round, ledgercore.AccountTotals, error) 
 }
 
 // OnlineTotals returns the online totals of all accounts at the end of round rnd.
-func (l *Ledger) OnlineTotals(rnd basics.Round) (basics.MicroAlgos, error) {
+func (l *Ledger) OnlineTotals(rnd basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	l.trackerMu.RLock()
 	defer l.trackerMu.RUnlock()
 	return l.acctsOnline.onlineTotals(rnd)

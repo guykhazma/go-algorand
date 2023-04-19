@@ -522,7 +522,7 @@ func (qs *onlineAccountsDbQueries) LookupOnline(addr basics.Address, rnd basics.
 	return
 }
 
-func (qs *onlineAccountsDbQueries) LookupOnlineTotalsHistory(round basics.Round) (basics.MicroAlgos, error) {
+func (qs *onlineAccountsDbQueries) LookupOnlineTotalsHistory(round basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	data := ledgercore.OnlineRoundParamsData{}
 	err := db.Retry(func() error {
 		row := qs.lookupOnlineTotalsStmt.QueryRow(round)
@@ -537,7 +537,7 @@ func (qs *onlineAccountsDbQueries) LookupOnlineTotalsHistory(round basics.Round)
 		}
 		return nil
 	})
-	return basics.MicroAlgos{Raw: data.OnlineSupply}, err
+	return basics.MicroAlgos{Raw: data.OnlineSupply}, data.ScoresSupply, err
 }
 
 func (qs *onlineAccountsDbQueries) LookupOnlineHistory(addr basics.Address) (result []trackerdb.PersistedOnlineAccountData, rnd basics.Round, err error) {

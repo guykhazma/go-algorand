@@ -215,7 +215,7 @@ func (l *testLedger) LookupAgreement(r basics.Round, a basics.Address) (basics.O
 	return l.state[a].OnlineAccountData(), nil
 }
 
-func (l *testLedger) Circulation(r basics.Round) (basics.MicroAlgos, error) {
+func (l *testLedger) Circulation(r basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -232,7 +232,7 @@ func (l *testLedger) Circulation(r basics.Round) (basics.MicroAlgos, error) {
 			panic("circulation computation overflowed")
 		}
 	}
-	return sum, nil
+	return sum, basics.Scores{}, nil // TODO: update test by adding scores
 }
 
 func (l *testLedger) ConsensusParams(basics.Round) (config.ConsensusParams, error) {
@@ -305,7 +305,7 @@ func TestSimulate(t *testing.T) {
 
 	numAccounts := 10
 	maxMoneyAtStart := 100001 // max money start
-	minMoneyAtStart := 100000 // max money start
+	minMoneyAtStart := 100000 // min money start
 	E := basics.Round(50)     // max round
 
 	// generate accounts

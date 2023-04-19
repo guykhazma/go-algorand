@@ -36,6 +36,11 @@ func (s Scores) IncreaseScores() Scores {
 	return s
 }
 
+func (s Scores) Sub(o Scores) Scores {
+	s.Trustworthiness = s.Trustworthiness - o.Trustworthiness
+	return s
+}
+
 func findHighestBalance(accounts []AccountDetail) (highest AccountDetail) {
 	for _, acc := range accounts {
 		if acc.Algos.GreaterThan(highest.Algos) {
