@@ -89,7 +89,7 @@ type (
 )
 
 // verify verifies that a vote that was received from the network is valid.
-func (uv unauthenticatedVote) verify(l LedgerReader, merger basics.Merger) (vote, error) {
+func (uv unauthenticatedVote) verify(l LedgerReader) (vote, error) {
 	rv := uv.R
 	m, err := membership(l, rv.Sender, rv.Round, rv.Period, rv.Step)
 	if err != nil {
@@ -133,7 +133,7 @@ func (uv unauthenticatedVote) verify(l LedgerReader, merger basics.Merger) (vote
 		return vote{}, fmt.Errorf("unauthenticatedVote.verify: could not verify FS signature on vote by %v given %v: %+v", rv.Sender, voteID, uv)
 	}
 
-	cred, err := uv.Cred.Verify(proto, m, merger)
+	cred, err := uv.Cred.Verify(proto, m)
 	if err != nil {
 		return vote{}, fmt.Errorf("unauthenticatedVote.verify: got a vote, but sender was not selected: %v", err)
 	}
@@ -185,7 +185,7 @@ func (v vote) u() unauthenticatedVote {
 	return unauthenticatedVote{R: v.R, Cred: v.Cred.UnauthenticatedCredential, Sig: v.Sig}
 }
 
-func (pair unauthenticatedEquivocationVote) verify(l LedgerReader, merger basics.Merger) (equivocationVote, error) {
+func (pair unauthenticatedEquivocationVote) verify(l LedgerReader) (equivocationVote, error) {
 	if pair.Proposals[0] == pair.Proposals[1] {
 		return equivocationVote{}, fmt.Errorf("isEquivocationPair: not an equivocation pair: identical vote (block hash %v == %v)", pair.Proposals[0], pair.Proposals[1])
 	}
@@ -196,12 +196,12 @@ func (pair unauthenticatedEquivocationVote) verify(l LedgerReader, merger basics
 	uv0 := unauthenticatedVote{R: rv0, Cred: pair.Cred, Sig: pair.Sigs[0]}
 	uv1 := unauthenticatedVote{R: rv1, Cred: pair.Cred, Sig: pair.Sigs[1]}
 
-	v0, err := uv0.verify(l, merger)
+	v0, err := uv0.verify(l)
 	if err != nil {
 		return equivocationVote{}, fmt.Errorf("unauthenticatedEquivocationVote.verify: failed to verify pair 0: %w", err)
 	}
 
-	_, err = uv1.verify(l, merger)
+	_, err = uv1.verify(l)
 	if err != nil {
 		return equivocationVote{}, fmt.Errorf("unauthenticatedEquivocationVote.verify: failed to verify pair 1: %w", err)
 	}

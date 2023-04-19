@@ -142,7 +142,6 @@ type AlgorandFullNode struct {
 	lastRoundTimestamp    time.Time
 	hasSyncedSinceStartup bool
 
-	merger                             basics.Merger
 	cryptoPool                         execpool.ExecutionPool
 	lowPriorityCryptoVerificationPool  execpool.BacklogPool
 	highPriorityCryptoVerificationPool execpool.BacklogPool
@@ -177,7 +176,7 @@ type TxnWithStatus struct {
 
 // MakeFull sets up an Algorand full node
 // (i.e., it returns a node that participates in consensus)
-func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis, merger basics.Merger) (*AlgorandFullNode, error) {
+func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis) (*AlgorandFullNode, error) {
 	node := new(AlgorandFullNode)
 	node.rootDir = rootDir
 	node.log = log.With("name", cfg.NetAddress)
@@ -278,7 +277,6 @@ func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookAdd
 		Local:          node.config,
 		Network:        gossip.WrapNetwork(node.net, log, cfg),
 		Ledger:         agreementLedger,
-		Merger:         merger,
 		BlockFactory:   node,
 		BlockValidator: blockValidator,
 		KeyManager:     node,
@@ -291,7 +289,7 @@ func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookAdd
 		return nil, err
 	}
 
-	node.catchupBlockAuth = blockAuthenticatorImpl{Ledger: node.ledger, AsyncVoteVerifier: agreement.MakeAsyncVoteVerifier(node.lowPriorityCryptoVerificationPool, merger)}
+	node.catchupBlockAuth = blockAuthenticatorImpl{Ledger: node.ledger, AsyncVoteVerifier: agreement.MakeAsyncVoteVerifier(node.lowPriorityCryptoVerificationPool)}
 	node.catchupService = catchup.MakeService(node.log, node.config, p2pNode, node.ledger, node.catchupBlockAuth, agreementLedger.UnmatchedPendingCertificates, node.lowPriorityCryptoVerificationPool)
 	node.txPoolSyncerService = rpcs.MakeTxSyncer(node.transactionPool, node.net, node.txHandler.SolicitedTxHandler(), time.Duration(cfg.TxSyncIntervalSeconds)*time.Second, time.Duration(cfg.TxSyncTimeoutSeconds)*time.Second, cfg.TxSyncServeResponseSize)
 

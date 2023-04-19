@@ -75,7 +75,6 @@ type pseudonode interface {
 type asyncPseudonode struct {
 	factory                BlockFactory
 	validator              BlockValidator
-	merger                 basics.Merger
 	keys                   KeyManager
 	ledger                 Ledger
 	log                    serviceLogger
@@ -129,7 +128,6 @@ type verifiedCryptoResults []asyncVerifyVoteResponse
 type pseudonodeParams struct {
 	factory      BlockFactory
 	validator    BlockValidator
-	merger       basics.Merger
 	keys         KeyManager
 	ledger       Ledger
 	voteVerifier *AsyncVoteVerifier
@@ -141,7 +139,6 @@ func makePseudonode(params pseudonodeParams) pseudonode {
 	pn := asyncPseudonode{
 		factory:   params.factory,
 		validator: params.validator,
-		merger:    params.merger,
 		keys:      params.keys,
 		ledger:    params.ledger,
 		log:       params.log,

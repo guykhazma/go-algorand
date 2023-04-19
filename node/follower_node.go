@@ -72,21 +72,19 @@ type AlgorandFollowerNode struct {
 	lastRoundTimestamp    time.Time
 	hasSyncedSinceStartup bool
 
-	merger                            basics.Merger
 	cryptoPool                        execpool.ExecutionPool
 	lowPriorityCryptoVerificationPool execpool.BacklogPool
 	catchupBlockAuth                  blockAuthenticatorImpl
 }
 
 // MakeFollower sets up an Algorand data node
-func MakeFollower(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis, merger basics.Merger) (*AlgorandFollowerNode, error) {
+func MakeFollower(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis) (*AlgorandFollowerNode, error) {
 	node := new(AlgorandFollowerNode)
 	node.rootDir = rootDir
 	node.log = log.With("name", cfg.NetAddress)
 	node.genesisID = genesis.ID()
 	node.genesisHash = genesis.Hash()
 	node.devMode = genesis.DevMode
-	node.merger = merger
 
 	if node.devMode {
 		log.Warn("Follower running on a devMode network. Must submit txns to a different node.")
@@ -134,7 +132,7 @@ func MakeFollower(log logging.Logger, rootDir string, cfg config.Local, phoneboo
 
 	node.ledger.RegisterBlockListeners(blockListeners)
 	node.blockService = rpcs.MakeBlockService(node.log, cfg, node.ledger, p2pNode, node.genesisID)
-	node.catchupBlockAuth = blockAuthenticatorImpl{Ledger: node.ledger, AsyncVoteVerifier: agreement.MakeAsyncVoteVerifier(node.lowPriorityCryptoVerificationPool, merger)}
+	node.catchupBlockAuth = blockAuthenticatorImpl{Ledger: node.ledger, AsyncVoteVerifier: agreement.MakeAsyncVoteVerifier(node.lowPriorityCryptoVerificationPool)}
 	node.catchupService = catchup.MakeService(node.log, node.config, p2pNode, node.ledger, node.catchupBlockAuth, make(chan catchup.PendingUnmatchedCertificate), node.lowPriorityCryptoVerificationPool)
 
 	// Initialize sync round to the latest db round + 1 so that nothing falls out of the cache on Start

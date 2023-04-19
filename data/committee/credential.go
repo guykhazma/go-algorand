@@ -29,6 +29,8 @@ import (
 	"github.com/algorand/go-algorand/protocol"
 )
 
+var merger = basics.SumMerger{}
+
 type (
 	// An UnauthenticatedCredential is a Credential which has not yet been
 	// authenticated.
@@ -72,7 +74,7 @@ type (
 //
 // If it is, the returned Credential constitutes a proof of this fact.
 // Otherwise, an error is returned.
-func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Membership, merger basics.Merger) (res Credential, err error) {
+func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Membership) (res Credential, err error) {
 	selectionKey := m.Record.SelectionID
 	ok, vrfOut := selectionKey.Verify(cred.Proof, m.Selector)
 
