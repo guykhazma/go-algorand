@@ -731,17 +731,32 @@ func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address, rewardLev
 		return nil
 	}
 	proto := l.GenesisProto()
-	top, _, err := l.acctsOnline.TopOnlineAccounts(r, r+1, 1, &proto, rewardLevel)
+	var highestStake basics.MicroAlgos
+	err = l.trackerDB().Snapshot(func(ctx context.Context, tx trackerdb.SnapshotScope) error {
+		rdr, err := tx.MakeAccountsReader()
+		if err != nil {
+			return err
+		}
+		m, err := rdr.AccountsOnlineTop(r, 0, 1, proto)
+		if err != nil {
+			return err
+		}
+		// it is supposed to be only one element in the map
+		for _, acc := range m {
+			highestStake = acc.MicroAlgos
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 	l.accts.accountsMu.Lock()
 	if macct, ok := l.accts.accounts[proposer]; ok {
-		macct.data.Scores = macct.data.Scores.IncreaseScores(top[0].MicroAlgos, macct.data.MicroAlgos)
+		macct.data.Scores = macct.data.Scores.IncreaseScores(highestStake, macct.data.MicroAlgos)
 		l.accts.accounts[proposer] = macct
 	}
 	if pacct, ok := l.accts.baseAccounts.read(proposer); ok && pacct.Round < r {
-		pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores(top[0].MicroAlgos, pacct.AccountData.MicroAlgos)
+		pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores(highestStake, pacct.AccountData.MicroAlgos)
 		l.accts.baseAccounts.write(pacct)
 	}
 	l.accts.accountsMu.Unlock()
