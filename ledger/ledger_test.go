@@ -2199,10 +2199,10 @@ func TestLedgerReloadShrinkDeltas(t *testing.T) {
 	l.cfg = cfg
 	l.reloadLedger()
 
-	_, err = l.OnlineTotals(basics.Round(proto.MaxBalLookback - shorterLookback))
+	_, _, err = l.OnlineTotals(basics.Round(proto.MaxBalLookback - shorterLookback))
 	require.Error(t, err)
 	for i := basics.Round(proto.MaxBalLookback - shorterLookback + 1); i <= l.Latest(); i++ {
-		online, err := l.OnlineTotals(i)
+		online, _, err := l.OnlineTotals(i)
 		require.NoError(t, err)
 		require.Equal(t, onlineTotals[i], online)
 	}
@@ -2625,10 +2625,10 @@ func TestLedgerMigrateV6ShrinkDeltas(t *testing.T) {
 		l2.Close()
 	}()
 
-	_, err = l2.OnlineTotals(basics.Round(proto.MaxBalLookback - shorterLookback))
+	_, _, err = l2.OnlineTotals(basics.Round(proto.MaxBalLookback - shorterLookback))
 	require.Error(t, err)
 	for i := l2.Latest() - basics.Round(proto.MaxBalLookback-1); i <= l2.Latest(); i++ {
-		online, err := l2.OnlineTotals(i)
+		online, _, err := l2.OnlineTotals(i)
 		require.NoError(t, err)
 		require.Equal(t, onlineTotals[i], online)
 	}
