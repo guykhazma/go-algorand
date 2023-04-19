@@ -721,7 +721,7 @@ func (l *Ledger) AddValidatedBlock(vb ledgercore.ValidatedBlock, cert agreement.
 
 func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address) error {
 	// use this to flush and refresh all the cache needed to update scores
-	_, rnd, _, err := l.LookupLatest(proposer)
+	_, rnd, _, err := l.accts.lookupLatest(proposer)
 	if err != nil {
 		return err
 	}
