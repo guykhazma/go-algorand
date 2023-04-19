@@ -750,6 +750,7 @@ func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address, rewardLev
 	if err != nil {
 		return err
 	}
+	l.trackerLog().Debugf("[MYCODE] round: %d; highestStake: %d\n", int(r), highestStake.Raw)
 	l.accts.accountsMu.Lock()
 	if macct, ok := l.accts.accounts[proposer]; ok {
 		macct.data.Scores = macct.data.Scores.IncreaseScores(highestStake, macct.data.MicroAlgos)
