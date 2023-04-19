@@ -23,6 +23,17 @@ func (_ SumMerger) Merge(algos MicroAlgos, scores Scores) uint64 {
 	return algos.Raw + scores.Trustworthiness // TODO: find more generic way
 }
 
+type ConstantMerger struct {
+	Total bool
+}
+
+func (m ConstantMerger) Merge(_ MicroAlgos, _ Scores) uint64 {
+	if m.Total {
+		return 1000
+	}
+	return 250
+}
+
 // Scores contains different kinds of selection score that are used to make the
 // user distribution during the sortition algorithm uniform.
 type Scores struct {
