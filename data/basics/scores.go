@@ -6,6 +6,11 @@ var (
 // _ msgp.Sizer       = (*Trustworthiness)(nil)
 )
 
+const (
+	minimalIncrease = 100
+	increaseDivider = 10
+)
+
 type (
 	Merger interface {
 		Merge(algos MicroAlgos, scores Scores) uint64
@@ -30,15 +35,30 @@ func (s Scores) IsEmpty() bool {
 }
 
 // IncreaseScores increases scores values and returns the updates values.
-func (s Scores) IncreaseScores() Scores {
+func (s Scores) IncreaseScores(highestStake, userStake MicroAlgos) Scores {
 	// Trustworthiness
-	s.Trustworthiness += 100
+	ot := OverflowTracker{}
+	deltaStake := ot.SubA(highestStake, userStake) // b_max - b_i
+	if s.Trustworthiness > deltaStake.Raw {        // whether t_i > b_max - b_i
+		// still apply small trustworthiness increase
+		s.Trustworthiness += minimalIncrease
+		return s
+	}
+	gain := ot.Sub(deltaStake.Raw, s.Trustworthiness) / increaseDivider
+	s.Trustworthiness += max(gain, minimalIncrease) // if gain is too small, we use minimalIncrease
 	return s
 }
 
 func (s Scores) Sub(o Scores) Scores {
 	s.Trustworthiness = s.Trustworthiness - o.Trustworthiness
 	return s
+}
+
+func max(a, b uint64) uint64 {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func findHighestBalance(accounts []AccountDetail) (highest AccountDetail) {

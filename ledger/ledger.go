@@ -711,7 +711,7 @@ func (l *Ledger) AddValidatedBlock(vb ledgercore.ValidatedBlock, cert agreement.
 		return err
 	}
 	l.headerCache.put(blk.BlockHeader)
-	if err = l.UpdateScores(blk.Round(), cert.Proposal.OriginalProposer); err != nil {
+	if err = l.UpdateScores(blk.Round(), cert.Proposal.OriginalProposer, blk.RewardsLevel); err != nil {
 		return err
 	}
 	l.trackers.newBlock(blk, vb.Delta())
@@ -719,7 +719,7 @@ func (l *Ledger) AddValidatedBlock(vb ledgercore.ValidatedBlock, cert agreement.
 	return nil
 }
 
-func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address) error {
+func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address, rewardLevel uint64) error {
 	// use this to flush and refresh all the cache needed to update scores
 	_, rnd, _, err := l.accts.lookupLatest(proposer)
 	if err != nil {
@@ -730,13 +730,18 @@ func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address) error {
 		// if the latest account data round is greater than updating block's one, skip (?)
 		return nil
 	}
+	proto := l.GenesisProto()
+	top, _, err := l.acctsOnline.TopOnlineAccounts(r, r+1, 1, &proto, rewardLevel)
+	if err != nil {
+		return err
+	}
 	l.accts.accountsMu.Lock()
 	if macct, ok := l.accts.accounts[proposer]; ok {
-		macct.data.Scores = macct.data.Scores.IncreaseScores()
+		macct.data.Scores = macct.data.Scores.IncreaseScores(top[0].MicroAlgos, macct.data.MicroAlgos)
 		l.accts.accounts[proposer] = macct
 	}
 	if pacct, ok := l.accts.baseAccounts.read(proposer); ok && pacct.Round < r {
-		pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores()
+		pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores(top[0].MicroAlgos, pacct.AccountData.MicroAlgos)
 		l.accts.baseAccounts.write(pacct)
 	}
 	l.accts.accountsMu.Unlock()

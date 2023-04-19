@@ -538,6 +538,7 @@ func (u AccountData) OnlineAccountData() OnlineAccountData {
 
 	return OnlineAccountData{
 		MicroAlgosWithRewards: u.MicroAlgos,
+		Scores:                u.Scores,
 		VotingData: VotingData{
 			VoteID:          u.VoteID,
 			SelectionID:     u.SelectionID,
