@@ -21,7 +21,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/algorand/go-algorand/data/scores"
+	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/util/execpool"
 )
 
@@ -55,14 +55,14 @@ type AsyncVoteVerifier struct {
 	wg              sync.WaitGroup
 	workerWaitCh    chan struct{}
 	backlogExecPool execpool.BacklogPool
-	merger          scores.Merger
+	merger          basics.Merger
 	execpoolOut     chan interface{}
 	ctx             context.Context
 	ctxCancel       context.CancelFunc
 }
 
 // MakeAsyncVoteVerifier creates an AsyncVoteVerifier with workers as the number of CPUs
-func MakeAsyncVoteVerifier(verificationPool execpool.BacklogPool, merger scores.Merger) *AsyncVoteVerifier {
+func MakeAsyncVoteVerifier(verificationPool execpool.BacklogPool, merger basics.Merger) *AsyncVoteVerifier {
 	verifier := &AsyncVoteVerifier{
 		done:   make(chan struct{}),
 		merger: merger,

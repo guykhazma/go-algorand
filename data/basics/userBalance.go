@@ -19,7 +19,6 @@ package basics
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/algorand/go-algorand/data/scores"
 	"reflect"
 
 	"github.com/algorand/go-algorand/config"
@@ -110,7 +109,7 @@ type VotingData struct {
 //msgp:ignore OnlineAccountData
 type OnlineAccountData struct {
 	MicroAlgosWithRewards MicroAlgos
-	Scores                scores.Scores
+	Scores                Scores
 	VotingData
 }
 
@@ -121,9 +120,9 @@ type OnlineAccountData struct {
 type AccountData struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	Status     Status        `codec:"onl"`
-	MicroAlgos MicroAlgos    `codec:"algo"`
-	Scores     scores.Scores `codec:"score"`
+	Status     Status     `codec:"onl"`
+	MicroAlgos MicroAlgos `codec:"algo"`
+	Scores     Scores     `codec:"score"`
 
 	// RewardsBase is used to implement rewards.
 	// This is not meaningful for accounts with Status=NotParticipating.

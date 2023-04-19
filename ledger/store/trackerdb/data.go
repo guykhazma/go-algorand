@@ -18,8 +18,6 @@ package trackerdb
 
 import (
 	"context"
-	"github.com/algorand/go-algorand/data/scores"
-
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
@@ -48,7 +46,7 @@ type BaseAccountData struct {
 	TotalAppLocalStates        uint64            `codec:"l"`
 	TotalBoxes                 uint64            `codec:"m"`
 	TotalBoxBytes              uint64            `codec:"n"`
-	Scores                     scores.Scores     `codec:"o"`
+	Scores                     basics.Scores     `codec:"o"`
 
 	BaseVotingData
 
@@ -151,7 +149,7 @@ type BaseOnlineAccountData struct {
 
 	BaseVotingData
 
-	Scores      scores.Scores     `codec:"X"`
+	Scores      basics.Scores     `codec:"X"`
 	MicroAlgos  basics.MicroAlgos `codec:"Y"`
 	RewardsBase uint64            `codec:"Z"`
 }

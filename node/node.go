@@ -38,7 +38,6 @@ import (
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/committee"
 	"github.com/algorand/go-algorand/data/pools"
-	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/data/transactions/verify"
 	"github.com/algorand/go-algorand/ledger"
@@ -143,7 +142,7 @@ type AlgorandFullNode struct {
 	lastRoundTimestamp    time.Time
 	hasSyncedSinceStartup bool
 
-	merger                             scores.Merger
+	merger                             basics.Merger
 	cryptoPool                         execpool.ExecutionPool
 	lowPriorityCryptoVerificationPool  execpool.BacklogPool
 	highPriorityCryptoVerificationPool execpool.BacklogPool
@@ -178,7 +177,7 @@ type TxnWithStatus struct {
 
 // MakeFull sets up an Algorand full node
 // (i.e., it returns a node that participates in consensus)
-func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis, merger scores.Merger) (*AlgorandFullNode, error) {
+func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis, merger basics.Merger) (*AlgorandFullNode, error) {
 	node := new(AlgorandFullNode)
 	node.rootDir = rootDir
 	node.log = log.With("name", cfg.NetAddress)

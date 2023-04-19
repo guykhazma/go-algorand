@@ -22,7 +22,6 @@ import (
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/committee"
-	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -90,7 +89,7 @@ type (
 )
 
 // verify verifies that a vote that was received from the network is valid.
-func (uv unauthenticatedVote) verify(l LedgerReader, merger scores.Merger) (vote, error) {
+func (uv unauthenticatedVote) verify(l LedgerReader, merger basics.Merger) (vote, error) {
 	rv := uv.R
 	m, err := membership(l, rv.Sender, rv.Round, rv.Period, rv.Step)
 	if err != nil {
@@ -186,7 +185,7 @@ func (v vote) u() unauthenticatedVote {
 	return unauthenticatedVote{R: v.R, Cred: v.Cred.UnauthenticatedCredential, Sig: v.Sig}
 }
 
-func (pair unauthenticatedEquivocationVote) verify(l LedgerReader, merger scores.Merger) (equivocationVote, error) {
+func (pair unauthenticatedEquivocationVote) verify(l LedgerReader, merger basics.Merger) (equivocationVote, error) {
 	if pair.Proposals[0] == pair.Proposals[1] {
 		return equivocationVote{}, fmt.Errorf("isEquivocationPair: not an equivocation pair: identical vote (block hash %v == %v)", pair.Proposals[0], pair.Proposals[1])
 	}

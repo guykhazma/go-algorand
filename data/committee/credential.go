@@ -25,7 +25,6 @@ import (
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/committee/sortition"
-	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -73,7 +72,7 @@ type (
 //
 // If it is, the returned Credential constitutes a proof of this fact.
 // Otherwise, an error is returned.
-func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Membership, merger scores.Merger) (res Credential, err error) {
+func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Membership, merger basics.Merger) (res Credential, err error) {
 	selectionKey := m.Record.SelectionID
 	ok, vrfOut := selectionKey.Verify(cred.Proof, m.Selector)
 

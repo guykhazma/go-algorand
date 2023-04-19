@@ -1,8 +1,4 @@
-package scores
-
-import (
-	"github.com/algorand/go-algorand/data/basics"
-)
+package basics
 
 var (
 // _ msgp.Marshaler   = (*Trustworthiness)(nil)
@@ -12,13 +8,13 @@ var (
 
 type (
 	Merger interface {
-		Merge(algos basics.MicroAlgos, scores Scores) uint64
+		Merge(algos MicroAlgos, scores Scores) uint64
 	}
 )
 
 type SumMerger struct{}
 
-func (_ SumMerger) Merge(algos basics.MicroAlgos, scores Scores) uint64 {
+func (_ SumMerger) Merge(algos MicroAlgos, scores Scores) uint64 {
 	return algos.Raw + scores.Trustworthiness // TODO: find more generic way
 }
 
@@ -38,4 +34,13 @@ func (s Scores) IncreaseScores() Scores {
 	// Trustworthiness
 	s.Trustworthiness += 100
 	return s
+}
+
+func findHighestBalance(accounts []AccountDetail) (highest AccountDetail) {
+	for _, acc := range accounts {
+		if acc.Algos.GreaterThan(highest.Algos) {
+			highest = acc
+		}
+	}
+	return
 }

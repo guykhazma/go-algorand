@@ -21,7 +21,6 @@ import (
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/data/basics"
-	"github.com/algorand/go-algorand/data/scores"
 )
 
 // AccountData provides users of the Balances interface per-account data (like basics.AccountData)
@@ -37,7 +36,7 @@ type AccountData struct {
 type AccountBaseData struct {
 	Status             basics.Status
 	MicroAlgos         basics.MicroAlgos
-	Scores             scores.Scores
+	Scores             basics.Scores
 	RewardsBase        uint64
 	RewardedMicroAlgos basics.MicroAlgos
 	AuthAddr           basics.Address
@@ -66,7 +65,7 @@ type VotingData struct {
 // OnlineAccountData holds MicroAlgosWithRewards and VotingData as needed for agreement
 type OnlineAccountData struct {
 	MicroAlgosWithRewards basics.MicroAlgos
-	Scores                scores.Scores
+	Scores                basics.Scores
 	VotingData
 }
 

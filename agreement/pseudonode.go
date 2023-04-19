@@ -25,7 +25,6 @@ import (
 
 	"github.com/algorand/go-algorand/data/account"
 	"github.com/algorand/go-algorand/data/basics"
-	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/logging/logspec"
 	"github.com/algorand/go-algorand/logging/telemetryspec"
@@ -76,7 +75,7 @@ type pseudonode interface {
 type asyncPseudonode struct {
 	factory                BlockFactory
 	validator              BlockValidator
-	merger                 scores.Merger
+	merger                 basics.Merger
 	keys                   KeyManager
 	ledger                 Ledger
 	log                    serviceLogger
@@ -130,7 +129,7 @@ type verifiedCryptoResults []asyncVerifyVoteResponse
 type pseudonodeParams struct {
 	factory      BlockFactory
 	validator    BlockValidator
-	merger       scores.Merger
+	merger       basics.Merger
 	keys         KeyManager
 	ledger       Ledger
 	voteVerifier *AsyncVoteVerifier

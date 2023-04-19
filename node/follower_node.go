@@ -34,7 +34,6 @@ import (
 	"github.com/algorand/go-algorand/data/account"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
-	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/ledger"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
@@ -73,14 +72,14 @@ type AlgorandFollowerNode struct {
 	lastRoundTimestamp    time.Time
 	hasSyncedSinceStartup bool
 
-	merger                            scores.Merger
+	merger                            basics.Merger
 	cryptoPool                        execpool.ExecutionPool
 	lowPriorityCryptoVerificationPool execpool.BacklogPool
 	catchupBlockAuth                  blockAuthenticatorImpl
 }
 
 // MakeFollower sets up an Algorand data node
-func MakeFollower(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis, merger scores.Merger) (*AlgorandFollowerNode, error) {
+func MakeFollower(log logging.Logger, rootDir string, cfg config.Local, phonebookAddresses []string, genesis bookkeeping.Genesis, merger basics.Merger) (*AlgorandFollowerNode, error) {
 	node := new(AlgorandFollowerNode)
 	node.rootDir = rootDir
 	node.log = log.With("name", cfg.NetAddress)

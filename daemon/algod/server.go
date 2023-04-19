@@ -38,7 +38,6 @@ import (
 	"github.com/algorand/go-algorand/daemon/algod/api/server/lib"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
-	"github.com/algorand/go-algorand/data/scores"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/logging/telemetryspec"
 	"github.com/algorand/go-algorand/network/limitlistener"
@@ -214,7 +213,7 @@ func (s *Server) Initialize(cfg config.Local, phonebookAddresses []string, genes
 			NodeExporterPath:          cfg.NodeExporterPath,
 		})
 
-	merger := scores.SumMerger{}
+	merger := basics.SumMerger{}
 	var serverNode ServerNode
 	if cfg.EnableFollowMode {
 		var followerNode *node.AlgorandFollowerNode
