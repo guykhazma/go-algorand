@@ -495,9 +495,9 @@ func (t *demuxTester) LookupAgreement(basics.Round, basics.Address) (basics.Onli
 }
 
 // implement Ledger
-func (t *demuxTester) Circulation(basics.Round) (basics.MicroAlgos, error) {
+func (t *demuxTester) Circulation(basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	// we don't care about this function in this test.
-	return basics.MicroAlgos{}, nil
+	return basics.MicroAlgos{}, basics.Scores{}, nil
 }
 
 // implement Ledger

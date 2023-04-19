@@ -49,8 +49,13 @@ func (s Scores) IncreaseScores(highestStake, userStake MicroAlgos) Scores {
 	return s
 }
 
+func (s Scores) Add(o Scores) Scores {
+	s.Trustworthiness += o.Trustworthiness
+	return s
+}
+
 func (s Scores) Sub(o Scores) Scores {
-	s.Trustworthiness = s.Trustworthiness - o.Trustworthiness
+	s.Trustworthiness -= o.Trustworthiness
 	return s
 }
 

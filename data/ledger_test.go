@@ -202,11 +202,11 @@ func TestLedgerCirculation(t *testing.T) {
 			require.Equal(t, rnd, validThrough)
 			require.Equal(t, baseDestValue+uint64(rnd), data.MicroAlgos.Raw)
 
-			roundCirculation, err := realLedger.OnlineTotals(rnd)
+			roundCirculation, _, err := realLedger.OnlineTotals(rnd)
 			require.NoError(t, err)
 			require.Equal(t, baseCirculation-uint64(rnd)*(10001), roundCirculation.Raw)
 
-			roundCirculation, err = l.OnlineTotals(rnd)
+			roundCirculation, _, err = l.OnlineTotals(rnd)
 			require.NoError(t, err)
 			require.Equal(t, baseCirculation-uint64(rnd)*(10001), roundCirculation.Raw)
 		} else if rnd < basics.Round(510) {
@@ -220,11 +220,11 @@ func TestLedgerCirculation(t *testing.T) {
 			require.Equal(t, rnd-1, validThrough)
 			require.Equal(t, baseDestValue+uint64(rnd)-1, data.MicroAlgos.Raw)
 
-			roundCirculation, err := realLedger.OnlineTotals(rnd - 1)
+			roundCirculation, _, err := realLedger.OnlineTotals(rnd - 1)
 			require.NoError(t, err)
 			require.Equal(t, baseCirculation-uint64(rnd-1)*(10001), roundCirculation.Raw)
 
-			roundCirculation, err = l.OnlineTotals(rnd - 1)
+			roundCirculation, _, err = l.OnlineTotals(rnd - 1)
 			require.NoError(t, err)
 			require.Equal(t, baseCirculation-uint64(rnd-1)*(10001), roundCirculation.Raw)
 		} else if rnd < basics.Round(520) {
@@ -236,17 +236,17 @@ func TestLedgerCirculation(t *testing.T) {
 			require.Error(t, err)
 			require.Equal(t, uint64(0), data.MicroAlgos.Raw)
 
-			_, err = realLedger.OnlineTotals(rnd + 1)
+			_, _, err = realLedger.OnlineTotals(rnd + 1)
 			require.Error(t, err)
 
-			_, err = l.OnlineTotals(rnd + 1)
+			_, _, err = l.OnlineTotals(rnd + 1)
 			require.Error(t, err)
 		} else if rnd < basics.Round(520) {
 			// test expired round ( expected error )
-			_, err = realLedger.OnlineTotals(rnd - 500)
+			_, _, err = realLedger.OnlineTotals(rnd - 500)
 			require.Error(t, err)
 
-			_, err = l.OnlineTotals(rnd - 500)
+			_, _, err = l.OnlineTotals(rnd - 500)
 			require.Error(t, err)
 		}
 	}

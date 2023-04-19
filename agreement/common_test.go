@@ -335,7 +335,7 @@ func (l *testLedger) LookupAgreement(r basics.Round, a basics.Address) (basics.O
 	return l.state[a].OnlineAccountData(), nil
 }
 
-func (l *testLedger) Circulation(r basics.Round) (basics.MicroAlgos, error) {
+func (l *testLedger) Circulation(r basics.Round) (basics.MicroAlgos, basics.Scores, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -352,7 +352,7 @@ func (l *testLedger) Circulation(r basics.Round) (basics.MicroAlgos, error) {
 			panic("circulation computation overflowed")
 		}
 	}
-	return sum, nil
+	return sum, basics.Scores{}, nil
 }
 
 func (l *testLedger) EnsureValidatedBlock(e ValidatedBlock, c Certificate) {

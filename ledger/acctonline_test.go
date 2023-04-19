@@ -783,7 +783,7 @@ func TestAcctOnlineRoundParamsCache(t *testing.T) {
 		accts = append(accts, newAccts)
 
 		if i > basics.Round(maxBalLookback) && i%10 == 0 {
-			onlineTotal, err := ao.onlineTotals(i - basics.Round(maxBalLookback))
+			onlineTotal, _, err := ao.onlineTotals(i - basics.Round(maxBalLookback))
 			require.NoError(t, err)
 			require.Equal(t, allTotals[i-basics.Round(maxBalLookback)].Online.Money, onlineTotal)
 			expectedConsensusVersion := testProtocolVersion1
@@ -824,7 +824,7 @@ func TestAcctOnlineRoundParamsCache(t *testing.T) {
 	require.Equal(t, ao.onlineRoundParamsData[:basics.Round(maxBalLookback)], dbOnlineRoundParams)
 
 	for i := ml.Latest() - basics.Round(maxBalLookback); i < ml.Latest(); i++ {
-		onlineTotal, err := ao.onlineTotals(i)
+		onlineTotal, _, err := ao.onlineTotals(i)
 		require.NoError(t, err)
 		require.Equal(t, allTotals[i].Online.Money, onlineTotal)
 	}
@@ -1313,10 +1313,10 @@ func TestAcctOnlineVotersLongerHistory(t *testing.T) {
 	require.Equal(t, oa.latest()-basics.Round(conf.MaxAcctLookback), endRound)
 	require.Equal(t, maxBlocks-int(lowest)-int(conf.MaxAcctLookback)+1, len(dbOnlineRoundParams))
 
-	_, err = oa.onlineTotalsEx(lowest)
+	_, _, err = oa.onlineTotalsEx(lowest)
 	require.NoError(t, err)
 
-	_, err = oa.onlineTotalsEx(lowest - 1)
+	_, _, err = oa.onlineTotalsEx(lowest - 1)
 	require.ErrorIs(t, err, sql.ErrNoRows)
 
 	// ensure the cache size for addrA does not have more entries than maxBalLookback + 1
@@ -1423,7 +1423,7 @@ func TestAcctOnlineTop(t *testing.T) {
 	conf := config.GetDefaultLocal()
 	au, oa := newAcctUpdates(t, ml, conf)
 	defer oa.close()
-	initialOnlineTotals, err := oa.onlineTotals(0)
+	initialOnlineTotals, _, err := oa.onlineTotals(0)
 	a.NoError(err)
 	top := compareOnlineTotals(a, oa, 0, 0, 5, initialOnlineTotals, initialOnlineTotals)
 	compareTopAccounts(a, top, allAccts)
@@ -1765,7 +1765,7 @@ func TestAcctOnlineTop_ChangeOnlineStake(t *testing.T) {
 		totals = newBlockWithUpdates(genesisAccts, updates, totals, t, ml, i, oa)
 	}
 
-	initialOnlineStake, err := oa.onlineTotals(0)
+	initialOnlineStake, _, err := oa.onlineTotals(0)
 	a.NoError(err)
 	rnd15TotalOnlineStake := algops.Sub(initialOnlineStake, allAccts[15].MicroAlgos) // 15 is offline
 
@@ -1810,7 +1810,7 @@ func compareOnlineTotals(a *require.Assertions, oa *onlineAccounts, rnd, voteRnd
 	top, onlineTotalVoteRnd, err := oa.TopOnlineAccounts(rnd, voteRnd, n, &proto, 0)
 	a.NoError(err)
 	a.Equal(expectedForVoteRnd, onlineTotalVoteRnd)
-	onlineTotalsRnd, err := oa.onlineTotals(rnd)
+	onlineTotalsRnd, _, err := oa.onlineTotals(rnd)
 	a.NoError(err)
 	a.Equal(expectedForRnd, onlineTotalsRnd)
 	a.LessOrEqual(onlineTotalVoteRnd.Raw, onlineTotalsRnd.Raw)
