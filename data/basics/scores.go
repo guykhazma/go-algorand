@@ -29,9 +29,9 @@ type ConstantMerger struct {
 
 func (m ConstantMerger) Merge(_ MicroAlgos, _ Scores) uint64 {
 	if m.Total {
-		return 1000
+		return 1000000
 	}
-	return 250
+	return 250000
 }
 
 // Scores contains different kinds of selection score that are used to make the
