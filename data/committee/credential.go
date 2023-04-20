@@ -97,17 +97,14 @@ func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Mem
 	}
 
 	var weight uint64
-	userMoney := m.Record.VotingStake()
 	expectedSelection := float64(m.Selector.CommitteeSize(proto))
-	totalScore := basics.ConstantMerger{Total: true}.Merge(m.TotalMoney, m.TotalScores)
-	userScore := basics.ConstantMerger{}.Merge(userMoney, m.Record.Scores)
 
-	if totalScore < userScore {
-		logging.Base().Panicf("UnauthenticatedCredential.Verify: total score = %v, but user score = %v", totalScore, userScore)
-	} else if totalScore == 0 || expectedSelection == 0 || expectedSelection > float64(totalScore) {
-		logging.Base().Panicf("UnauthenticatedCredential.Verify: totalScore %v, expectedSelection %v", totalScore, expectedSelection)
-	} else if !userMoney.IsZero() {
-		weight = sortition.Select(userScore, totalScore, expectedSelection, h)
+	if m.TotalMergedStake < m.MergedStake {
+		logging.Base().Panicf("UnauthenticatedCredential.Verify: total money = %v, but user money = %v", m.TotalMergedStake, m.MergedStake)
+	} else if m.TotalMergedStake == 0 || expectedSelection == 0 || expectedSelection > float64(m.TotalMergedStake) {
+		logging.Base().Panicf("UnauthenticatedCredential.Verify: m.TotalMoney %v, expectedSelection %v", m.TotalMergedStake, expectedSelection)
+	} else if m.MergedStake != 0 {
+		weight = sortition.Select(m.MergedStake, m.TotalMergedStake, expectedSelection, h)
 	}
 
 	if weight == 0 {

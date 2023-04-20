@@ -177,6 +177,8 @@ type LedgerReader interface {
 	// unavailable by the storage device. In that case, the agreement
 	// protocol may lose liveness.
 	ConsensusVersion(basics.Round) (protocol.ConsensusVersion, error)
+
+	OnlineAccountsNumber() (uint64, error)
 }
 
 // A LedgerWriter allows writing entries to the ledger.

@@ -86,5 +86,7 @@ func membership(l LedgerReader, addr basics.Address, r basics.Round, p period, s
 	m.Selector = selector{Seed: seed, Round: r, Period: p, Step: s}
 	m.TotalMoney = total
 	m.TotalScores = scores
+	m.MergedStake = basics.ConstantMerger{Retriever: l}.Merge(record.VotingStake(), record.Scores)
+	m.TotalMergedStake = basics.ConstantMerger{Retriever: l, Total: true}.Merge(total, scores)
 	return m, nil
 }

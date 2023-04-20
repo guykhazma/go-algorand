@@ -23,15 +23,22 @@ func (_ SumMerger) Merge(algos MicroAlgos, scores Scores) uint64 {
 	return algos.Raw + scores.Trustworthiness // TODO: find more generic way
 }
 
+type totalsRetriever interface {
+	OnlineAccountsNumber() (uint64, error)
+}
+
 type ConstantMerger struct {
-	Total bool
+	Retriever totalsRetriever
+	Total     bool
 }
 
 func (m ConstantMerger) Merge(_ MicroAlgos, _ Scores) uint64 {
+	total := uint64(1000000)
 	if m.Total {
-		return 1000000
+		return total
 	}
-	return 250000
+	accNum, _ := m.Retriever.OnlineAccountsNumber()
+	return total / accNum
 }
 
 // Scores contains different kinds of selection score that are used to make the

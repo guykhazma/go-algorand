@@ -711,9 +711,9 @@ func (l *Ledger) AddValidatedBlock(vb ledgercore.ValidatedBlock, cert agreement.
 		return err
 	}
 	l.headerCache.put(blk.BlockHeader)
-	if err = l.UpdateScores(blk.Round(), cert.Proposal.OriginalProposer, blk.RewardsLevel); err != nil {
-		return err
-	}
+	//if err = l.UpdateScores(blk.Round(), cert.Proposal.OriginalProposer, blk.RewardsLevel); err != nil {
+	//	return err
+	//}
 	l.trackers.newBlock(blk, vb.Delta())
 	l.log.Debugf("ledger.AddValidatedBlock: added blk %d", blk.Round())
 	return nil
@@ -751,17 +751,29 @@ func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address, rewardLev
 		return err
 	}
 	l.trackerLog().Debugf("[MYCODE] round: %d; highestStake: %d\n", int(r), highestStake.Raw)
-	l.accts.accountsMu.Lock()
-	if macct, ok := l.accts.accounts[proposer]; ok {
-		macct.data.Scores = macct.data.Scores.IncreaseScores(highestStake, macct.data.MicroAlgos)
-		l.accts.accounts[proposer] = macct
-	}
-	if pacct, ok := l.accts.baseAccounts.read(proposer); ok && pacct.Round < r {
-		pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores(highestStake, pacct.AccountData.MicroAlgos)
-		l.accts.baseAccounts.write(pacct)
-	}
-	l.accts.accountsMu.Unlock()
+	//l.accts.accountsMu.Lock()
+	//if macct, ok := l.accts.accounts[proposer]; ok {
+	//	macct.data.Scores = macct.data.Scores.IncreaseScores(highestStake, macct.data.MicroAlgos)
+	//	l.accts.accounts[proposer] = macct
+	//}
+	//if pacct, ok := l.accts.baseAccounts.read(proposer); ok && pacct.Round < r {
+	//	pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores(highestStake, pacct.AccountData.MicroAlgos)
+	//	l.accts.baseAccounts.write(pacct)
+	//}
+	//l.accts.accountsMu.Unlock()
 	return nil
+}
+
+func (l *Ledger) OnlineAccountsNumber() (total uint64, err error) {
+	err = l.trackerDB().Snapshot(func(ctx context.Context, tx trackerdb.SnapshotScope) error {
+		ar, err := tx.MakeAccountsReader()
+		if err != nil {
+			return err
+		}
+		total, err = ar.TotalAccounts(ctx)
+		return err
+	})
+	return
 }
 
 // WaitForCommit waits until block r (and block before r) are durably

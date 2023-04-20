@@ -52,6 +52,8 @@ type Membership struct {
 	Selector    Selector
 	TotalMoney  basics.MicroAlgos
 	TotalScores basics.Scores
+
+	MergedStake, TotalMergedStake uint64
 }
 
 // A Seed contains cryptographic entropy which can be used to determine a
