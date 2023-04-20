@@ -45,6 +45,7 @@ var accountsSchema = []string{
 		id string primary key,
 		online integer,
 		onlinerewardunits integer,
+		onlinescores blob,
 		offline integer,
 		offlinerewardunits integer,
 		notparticipating integer,
@@ -621,6 +622,7 @@ func performOnlineRoundParamsTailMigration(ctx context.Context, tx *sql.Tx, bloc
 	onlineRoundParams := []ledgercore.OnlineRoundParamsData{
 		{
 			OnlineSupply:    totals.Online.Money.Raw,
+			ScoresSupply:    totals.Scores,
 			RewardsLevel:    totals.RewardsLevel,
 			CurrentProtocol: currentProto,
 		},

@@ -83,12 +83,13 @@ func (r *accountsV2Reader) AccountsTotals(ctx context.Context, catchpointStaging
 	if catchpointStaging {
 		id = "catchpointStaging"
 	}
-	row := r.q.QueryRowContext(ctx, "SELECT online, onlinerewardunits, offline, offlinerewardunits, notparticipating, notparticipatingrewardunits, rewardslevel FROM accounttotals WHERE id=?", id)
-	err = row.Scan(&totals.Online.Money.Raw, &totals.Online.RewardUnits,
+	var buf []byte
+	row := r.q.QueryRowContext(ctx, "SELECT online, onlinerewardunits, onlinescores, offline, offlinerewardunits, notparticipating, notparticipatingrewardunits, rewardslevel FROM accounttotals WHERE id=?", id)
+	err = row.Scan(&totals.Online.Money.Raw, &totals.Online.RewardUnits, &buf,
 		&totals.Offline.Money.Raw, &totals.Offline.RewardUnits,
 		&totals.NotParticipating.Money.Raw, &totals.NotParticipating.RewardUnits,
 		&totals.RewardsLevel)
-
+	err = protocol.Decode(buf, &totals.Scores)
 	return
 }
 
@@ -624,9 +625,10 @@ func (w *accountsV2Writer) AccountsPutTotals(totals ledgercore.AccountTotals, ca
 	if catchpointStaging {
 		id = "catchpointStaging"
 	}
-	_, err := w.e.Exec("REPLACE INTO accounttotals (id, online, onlinerewardunits, offline, offlinerewardunits, notparticipating, notparticipatingrewardunits, rewardslevel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+	scores := protocol.Encode(&totals.Scores)
+	_, err := w.e.Exec("REPLACE INTO accounttotals (id, online, onlinerewardunits, onlinescores, offline, offlinerewardunits, notparticipating, notparticipatingrewardunits, rewardslevel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		id,
-		totals.Online.Money.Raw, totals.Online.RewardUnits,
+		totals.Online.Money.Raw, totals.Online.RewardUnits, scores,
 		totals.Offline.Money.Raw, totals.Offline.RewardUnits,
 		totals.NotParticipating.Money.Raw, totals.NotParticipating.RewardUnits,
 		totals.RewardsLevel)

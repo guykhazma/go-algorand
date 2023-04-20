@@ -481,6 +481,7 @@ func (bo *BaseOnlineAccountData) SetCoreAccountData(ad *ledgercore.AccountData) 
 
 	// MicroAlgos/RewardsBase are updated by the evaluator when accounts are touched
 	bo.MicroAlgos = ad.MicroAlgos
+	bo.Scores = ad.Scores
 	bo.RewardsBase = ad.RewardsBase
 }
 

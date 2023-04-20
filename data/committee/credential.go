@@ -99,8 +99,8 @@ func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Mem
 	var weight uint64
 	userMoney := m.Record.VotingStake()
 	expectedSelection := float64(m.Selector.CommitteeSize(proto))
-	totalScore := basics.ConstantMerger{Total: true}.Merge(m.TotalMoney, m.TotalScores)
-	userScore := basics.ConstantMerger{}.Merge(userMoney, m.Record.Scores)
+	totalScore := merger.Merge(m.TotalMoney, m.TotalScores)
+	userScore := merger.Merge(userMoney, m.Record.Scores)
 
 	if totalScore < userScore {
 		logging.Base().Panicf("UnauthenticatedCredential.Verify: total score = %v, but user score = %v", totalScore, userScore)

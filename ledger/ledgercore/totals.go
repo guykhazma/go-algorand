@@ -45,9 +45,10 @@ func (ac *AlgoCount) applyRewards(rewardsPerUnit uint64, ot *basics.OverflowTrac
 type AccountTotals struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	Online           AlgoCount `codec:"online"`
-	Offline          AlgoCount `codec:"offline"`
-	NotParticipating AlgoCount `codec:"notpart"`
+	Online           AlgoCount     `codec:"online"`
+	Offline          AlgoCount     `codec:"offline"`
+	Scores           basics.Scores `codec:"scores"`
+	NotParticipating AlgoCount     `codec:"notpart"`
 
 	// Total number of algos received per reward unit since genesis
 	RewardsLevel uint64 `codec:"rwdlvl"`

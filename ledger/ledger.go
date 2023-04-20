@@ -706,33 +706,24 @@ func (l *Ledger) AddValidatedBlock(vb ledgercore.ValidatedBlock, cert agreement.
 	defer l.trackerMu.Unlock()
 
 	blk := vb.Block()
-	err := l.blockQ.putBlock(blk, cert)
+	delta, err := l.UpdateScores(vb.Delta(), blk.Round(), cert.Proposal.OriginalProposer)
+	if err != nil {
+		return err
+	}
+	err = l.blockQ.putBlock(blk, cert)
 	if err != nil {
 		return err
 	}
 	l.headerCache.put(blk.BlockHeader)
-	if err = l.UpdateScores(blk.Round(), cert.Proposal.OriginalProposer, blk.RewardsLevel); err != nil {
-		return err
-	}
-	l.trackers.newBlock(blk, vb.Delta())
+	l.trackers.newBlock(blk, delta)
 	l.log.Debugf("ledger.AddValidatedBlock: added blk %d", blk.Round())
 	return nil
 }
 
-func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address, rewardLevel uint64) error {
-	// use this to flush and refresh all the cache needed to update scores
-	_, rnd, _, err := l.accts.lookupLatest(proposer)
-	if err != nil {
-		return err
-	}
-	if rnd > r {
-		// TODO: verify this logic is correct
-		// if the latest account data round is greater than updating block's one, skip (?)
-		return nil
-	}
+func (l *Ledger) UpdateScores(delta ledgercore.StateDelta, r basics.Round, proposer basics.Address) (ledgercore.StateDelta, error) {
 	proto := l.GenesisProto()
 	var highestStake basics.MicroAlgos
-	err = l.trackerDB().Snapshot(func(ctx context.Context, tx trackerdb.SnapshotScope) error {
+	err := l.trackerDB().Snapshot(func(ctx context.Context, tx trackerdb.SnapshotScope) error {
 		rdr, err := tx.MakeAccountsReader()
 		if err != nil {
 			return err
@@ -748,20 +739,25 @@ func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address, rewardLev
 		return nil
 	})
 	if err != nil {
-		return err
+		return delta, err
 	}
-	l.trackerLog().Debugf("[MYCODE] round: %d; highestStake: %d\n", int(r), highestStake.Raw)
-	l.accts.accountsMu.Lock()
-	if macct, ok := l.accts.accounts[proposer]; ok {
-		macct.data.Scores = macct.data.Scores.IncreaseScores(highestStake, macct.data.MicroAlgos)
-		l.accts.accounts[proposer] = macct
+	var scoresGain basics.Scores
+	data, ok := delta.Accts.GetData(proposer)
+	if ok {
+		scoresGain = data.Scores.IncreaseScores(highestStake, data.MicroAlgos)
+	} else {
+		var algos basics.MicroAlgos
+		data, _, algos, err = l.LookupAccount(r-1, proposer)
+		if err != nil {
+			return delta, err
+		}
+		data.MicroAlgos = algos
+		scoresGain = data.Scores.IncreaseScores(highestStake, algos)
 	}
-	if pacct, ok := l.accts.baseAccounts.read(proposer); ok && pacct.Round < r {
-		pacct.AccountData.Scores = pacct.AccountData.Scores.IncreaseScores(highestStake, pacct.AccountData.MicroAlgos)
-		l.accts.baseAccounts.write(pacct)
-	}
-	l.accts.accountsMu.Unlock()
-	return nil
+	data.Scores.Add(scoresGain)
+	delta.Totals.Scores.Add(scoresGain)
+	delta.Accts.Upsert(proposer, data)
+	return delta, nil
 }
 
 // WaitForCommit waits until block r (and block before r) are durably

@@ -52,11 +52,11 @@ func (s Scores) IncreaseScores(highestStake, userStake MicroAlgos) Scores {
 	deltaStake := ot.SubA(highestStake, userStake) // b_max - b_i
 	if s.Trustworthiness > deltaStake.Raw {        // whether t_i > b_max - b_i
 		// still apply small trustworthiness increase
-		s.Trustworthiness += minimalIncrease
+		s.Trustworthiness = minimalIncrease
 		return s
 	}
 	gain := ot.Sub(deltaStake.Raw, s.Trustworthiness) / increaseDivider
-	s.Trustworthiness += max(gain, minimalIncrease) // if gain is too small, we use minimalIncrease
+	s.Trustworthiness = max(gain, minimalIncrease) // if gain is too small, we use minimalIncrease
 	return s
 }
 

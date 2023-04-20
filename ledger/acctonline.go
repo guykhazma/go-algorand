@@ -252,6 +252,7 @@ func (ao *onlineAccounts) newBlockImpl(blk bookkeeping.Block, delta ledgercore.S
 
 	ao.onlineRoundParamsData = append(ao.onlineRoundParamsData, ledgercore.OnlineRoundParamsData{
 		OnlineSupply:    delta.Totals.Online.Money.Raw,
+		ScoresSupply:    delta.Totals.Scores,
 		RewardsLevel:    delta.Totals.RewardsLevel,
 		CurrentProtocol: blk.CurrentProtocol,
 	})
