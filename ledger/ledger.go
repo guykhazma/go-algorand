@@ -746,13 +746,11 @@ func (l *Ledger) UpdateScores(delta ledgercore.StateDelta, r basics.Round, propo
 	if ok {
 		scoresGain = data.Scores.IncreaseScores(highestStake, data.MicroAlgos)
 	} else {
-		var algos basics.MicroAlgos
-		data, _, algos, err = l.LookupAccount(r-1, proposer)
+		data, _, _, _, err = l.accts.lookupWithoutRewards(r-1, proposer, true)
 		if err != nil {
 			return delta, err
 		}
-		data.MicroAlgos = algos
-		scoresGain = data.Scores.IncreaseScores(highestStake, algos)
+		scoresGain = data.Scores.IncreaseScores(highestStake, data.MicroAlgos)
 	}
 	data.Scores.Add(scoresGain)
 	delta.Totals.Scores.Add(scoresGain)

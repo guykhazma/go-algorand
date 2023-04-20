@@ -106,6 +106,7 @@ func ToAccountData(acct basics.AccountData) AccountData {
 func AssignAccountData(a *basics.AccountData, acct AccountData) {
 	a.Status = acct.Status
 	a.MicroAlgos = acct.MicroAlgos
+	a.Scores = acct.Scores
 	a.RewardsBase = acct.RewardsBase
 	a.RewardedMicroAlgos = acct.RewardedMicroAlgos
 

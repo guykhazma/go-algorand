@@ -626,7 +626,7 @@ func (w *accountsV2Writer) AccountsPutTotals(totals ledgercore.AccountTotals, ca
 		id = "catchpointStaging"
 	}
 	scores := protocol.Encode(&totals.Scores)
-	_, err := w.e.Exec("REPLACE INTO accounttotals (id, online, onlinerewardunits, onlinescores, offline, offlinerewardunits, notparticipating, notparticipatingrewardunits, rewardslevel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+	_, err := w.e.Exec("REPLACE INTO accounttotals (id, online, onlinerewardunits, onlinescores, offline, offlinerewardunits, notparticipating, notparticipatingrewardunits, rewardslevel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		id,
 		totals.Online.Money.Raw, totals.Online.RewardUnits, scores,
 		totals.Offline.Money.Raw, totals.Offline.RewardUnits,
