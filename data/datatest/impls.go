@@ -79,6 +79,11 @@ type ledgerImpl struct {
 	l *data.Ledger
 }
 
+func (i ledgerImpl) OnlineAccountsNumber() (uint64, error) {
+	// TODO: no tests
+	return 0, nil
+}
+
 // NextRound implements Ledger.NextRound.
 func (i ledgerImpl) NextRound() basics.Round {
 	return i.l.NextRound()
