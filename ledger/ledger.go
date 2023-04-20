@@ -770,7 +770,17 @@ func (l *Ledger) OnlineAccountsNumber() (total uint64, err error) {
 		if err != nil {
 			return err
 		}
-		total, err = ar.TotalAccounts(ctx)
+		accs, err := ar.OnlineAccountsAll(0)
+		if err != nil {
+			return err
+		}
+		accsMap := map[string]struct{}{}
+		for _, acc := range accs {
+			if _, ok := accsMap[acc.Addr.String()]; !ok {
+				accsMap[acc.Addr.String()] = struct{}{}
+			}
+		}
+		total = uint64(len(accsMap))
 		return err
 	})
 	return
