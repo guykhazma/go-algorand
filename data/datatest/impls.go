@@ -79,7 +79,7 @@ type ledgerImpl struct {
 	l *data.Ledger
 }
 
-func (i ledgerImpl) OnlineAccountsNumber() (uint64, error) {
+func (i ledgerImpl) OnlineAccountsNumber(basics.Round) (uint64, error) {
 	// TODO: no tests
 	return 0, nil
 }

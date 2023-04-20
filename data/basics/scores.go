@@ -24,7 +24,7 @@ func (_ SumMerger) Merge(algos MicroAlgos, scores Scores) uint64 {
 }
 
 type totalsRetriever interface {
-	OnlineAccountsNumber() (uint64, error)
+	OnlineAccountsNumber(round Round) (uint64, error)
 }
 
 type ConstantMerger struct {
@@ -32,12 +32,12 @@ type ConstantMerger struct {
 	Total     bool
 }
 
-func (m ConstantMerger) Merge(_ MicroAlgos, _ Scores) uint64 {
+func (m ConstantMerger) Merge(round Round, _ MicroAlgos, _ Scores) uint64 {
 	total := uint64(1000000)
 	if m.Total {
 		return total
 	}
-	accNum, _ := m.Retriever.OnlineAccountsNumber()
+	accNum, _ := m.Retriever.OnlineAccountsNumber(round)
 	return total / accNum
 }
 

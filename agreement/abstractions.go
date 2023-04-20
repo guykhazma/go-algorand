@@ -178,7 +178,7 @@ type LedgerReader interface {
 	// protocol may lose liveness.
 	ConsensusVersion(basics.Round) (protocol.ConsensusVersion, error)
 
-	OnlineAccountsNumber() (uint64, error)
+	OnlineAccountsNumber(basics.Round) (uint64, error)
 }
 
 // A LedgerWriter allows writing entries to the ledger.

@@ -764,24 +764,18 @@ func (l *Ledger) UpdateScores(r basics.Round, proposer basics.Address, rewardLev
 	return nil
 }
 
-func (l *Ledger) OnlineAccountsNumber() (total uint64, err error) {
+func (l *Ledger) OnlineAccountsNumber(round basics.Round) (total uint64, err error) {
 	err = l.trackerDB().Snapshot(func(ctx context.Context, tx trackerdb.SnapshotScope) error {
 		ar, err := tx.MakeAccountsReader()
 		if err != nil {
 			return err
 		}
-		accs, err := ar.OnlineAccountsAll(0)
+		m, err := ar.AccountsOnlineTop(round, 0, 1000, l.GenesisProto())
 		if err != nil {
 			return err
 		}
-		accsMap := map[string]struct{}{}
-		for _, acc := range accs {
-			if _, ok := accsMap[acc.Addr.String()]; !ok {
-				accsMap[acc.Addr.String()] = struct{}{}
-			}
-		}
-		total = uint64(len(accsMap))
-		return err
+		total = uint64(len(m))
+		return nil
 	})
 	return
 }
